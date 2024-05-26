@@ -7,35 +7,16 @@ const Home = () => {
   // 2 -> ？
   // 3 -> 旗
   //クリックの詳細マップ
-  const [userInput, setUserInput] = useState<(0 | 1 | 2 | 3)[][]>([
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  ]);
+  const [userInput, setUserInput] = useState<(0 | 1 | 2 | 3)[][]>(
+    [...Array(9)].map(() => [...Array(9)].map(() => 0)),
+  );
 
   const bombCount = 10;
   // 0 -> ボムあり
   // 1 -> ボムなし
+  // 2-9 -> 数字セル
   //ボムの詳細マップ
-  const [bombMap, setBombMap] = useState([
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  ]);
-
-  const isFirst = !bombMap.flat().includes(1);
+  const [bombMap, setBombMap] = useState([...Array(9)].map(() => [...Array(9)].map(() => 0)));
 
   const isPlaying = userInput.some((row) => row.some((input) => input !== 0));
   const isFailure = userInput.some((row, y) =>
@@ -68,101 +49,123 @@ const Home = () => {
     [-1, -1],
   ];
 
-  const zeroList: { x: number; y: number }[] = [];
+  // const zeroList: { x: number; y: number }[] = [];
 
-  bombMap.forEach((row, y) =>
-    row.forEach((_, x) => {
-      if (bombMap[y][x] === 0) {
-        zeroList.push({ x, y });
-      }
-    }),
-  );
+  // bombMap.forEach((row, y) =>
+  //   row.forEach((_, x) => {
+  //     if (bombMap[y][x] === 0) {
+  //       zeroList.push({ x, y });
+  //     }
+  //   }),
+  // );
 
-  console.log(zeroList.length);
+  // console.log(zeroList);
+
+  const checkZerolist = (x: number, y: number) => {
+    console.log('checkZerolist');
+    if (x < 0 || x >= 9 || y < 0 || y >= 9) {
+      return;
+    }
+
+    if (bombMap[y][x] >= 2) {
+      board[y][x] = bombMap[y][x] - 1;
+      return;
+    }
+
+    if (board[y][x] === -1) {
+      board[y][x] = 0;
+      console.log('OpenCell');
+
+      directions.forEach(([dy, dx]) => {
+        const aroundY = y + dy;
+        const aroundX = x + dx;
+
+        checkZerolist(aroundX, aroundY);
+      });
+    }
+  };
 
   const clickstone = (x: number, y: number) => {
     console.log(x, y);
+    const newInput = structuredClone(userInput);
 
     //初回のみbombMapに爆弾、boardに数字をセット
+    const isFirst = board.flat().filter((point) => point !== -1).length === 0;
     if (isFirst) {
+      const newMap = structuredClone(bombMap);
+
+      console.log('isFirst2', isFirst, board);
       let p: number = 0;
       while (p < bombCount) {
         console.log('ループ', p);
 
-        const randomIndex: number = Math.floor(Math.random() * 80);
-        const bombIndex = zeroList[randomIndex];
-        if (bombMap[bombIndex.y][bombIndex.x] === 1 || (bombIndex.y === y && bombIndex.x === x)) {
+        const bombY: number = Math.floor(Math.random() * 9);
+        const bombX: number = Math.floor(Math.random() * 9);
+        if (newMap[bombY][bombX] === 1 || (bombY === y && bombX === x)) {
           //ボム配置ループやり直し
-          console.log('bomb:', bombIndex.y, bombIndex.x);
+          console.log('被り', bombY, bombX);
           console.log('continue');
           continue;
         }
-        bombMap[bombIndex.y][bombIndex.x] = 1;
+        newMap[bombY][bombX] = 1;
         // ボムを配置
-        console.log('bomb:', bombIndex.y, bombIndex.x);
+        console.log('bomb:', bombY, bombX);
         p++;
+
+        directions.forEach(([dy, dx]) => {
+          const aroundY = bombY + dy;
+          const aroundX = bombX + dx;
+          console.log('ボム周辺', aroundY, aroundX);
+          if (
+            newMap[aroundY] !== undefined &&
+            newMap[aroundY][aroundX] !== undefined &&
+            newMap[aroundY][aroundX] !== 1
+          ) {
+            console.log('aroundNum');
+            if (newMap[aroundY][aroundX] >= 2) {
+              newMap[y][x] += 1;
+            } else {
+              newMap[aroundY][aroundX] = 2;
+            }
+          }
+        });
       }
+
       setBombMap(bombMap);
       console.log('bombMap', bombMap);
       console.log('board3', board);
     }
 
-    //userInputの左クリック
-    const newMap = structuredClone(userInput);
-    newMap[y][x] = 1;
-    setUserInput(newMap);
+    //newInputの左クリック
+
+    checkZerolist(x, y);
+    console.log('board2', board);
+    console.log('bombMap', bombMap);
+
+    newInput[y][x] = 1;
+    setUserInput(newInput);
   };
 
-  console.log('board2', board);
-
-  //boardを変更
-  userInput.forEach((row, y) =>
-    userInput.forEach((_, x) => {
-      if (userInput[y][x] === 1) {
-        board[y][x] = 0;
-      }
-    }),
-  );
-  //ボードの数字セルを設定
-  bombMap.forEach((row, y) =>
-    bombMap.forEach((_, x) => {
-      if (board[y][x] === 0) {
-        directions.forEach((r) => {
-          const aroundY = y + r[0];
-          const aroundX = x + r[1];
-          console.log('ボム周辺', aroundY, aroundX);
-          if (
-            bombMap[aroundY] !== undefined &&
-            bombMap[aroundY][aroundX] !== undefined &&
-            bombMap[aroundY][aroundX] === 1
-          ) {
-            console.log('aroundNum');
-            if (board[y][x] !== 0) {
-              board[y][x] += 1;
-            } else {
-              board[y][x] = 1;
-            }
-          }
-        });
-      }
-    }),
-  );
+  console.log('board77', board);
 
   return (
     <div className={styles.container}>
       <div className={styles.boardStyle}>
-        {userInput.map((row, y) =>
-          row.map((_, x) => (
+        {board.map((row, y) =>
+          row.map((cell, x) => (
             <div className={styles.cellStyle} key={`${x}-${y}`} onClick={() => clickstone(x, y)}>
-              {board[y][x] === -1 ? (
+              {cell === -1 ? (
                 <div className={styles.fillStyle} /> //石
-              ) : board[y][x] === 0 ? ( //セル無し
+              ) : cell === 0 ? ( //セル無し
                 <div />
               ) : (
-                <div
-                  className={styles.sampleStyle}
-                  style={{ backgroundPosition: `${-30 * board[y][x] - 1}px 0px` }}
-                />
+                (console.log('反映', board),
+                (
+                  <div
+                    className={styles.sampleStyle}
+                    style={{ backgroundPosition: `${-30 * cell - 1}px 0px` }}
+                  />
+                ))
               )}
             </div>
           )),
@@ -173,7 +176,7 @@ const Home = () => {
         className={styles.sampleStyle}
         style={{ backgroundPosition: `${-30 * samplePos}px 0px` }}
       />
-      <button onClick={() => setSamplePos((p) => (p + 1) % 14)}>sample</button>
+      <button onClick={() => setSamplePos((p) => (p + 1) % 14)}>{board}sample</button>
     </div>
   );
 };
