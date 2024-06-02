@@ -6,6 +6,7 @@
   height: 100vh;
   min-height: 100vh;
   padding: 0 0.5rem;
+  background-color: aliceblue;
 }
 
 .sampleStyle {
@@ -14,12 +15,63 @@
   background: url('~/src/assets/images/icons.png') no-repeat;
 }
 
+.backboardStyle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 350px;
+  height: 400px;
+  background-color: #c6c6c6;
+  border: solid, 5px;
+  border-color: white #808080 #808080 white;
+}
+
+.infoStyle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  width: 280px;
+  height: 80px;
+  background-color: #c6c6c6;
+  border: solid, 5px;
+  border-color: #808080 white white #808080;
+}
+
+.countStyle {
+  width: 80px;
+  height: 50px;
+  background-color: #c6c6c6;
+  border: solid, 2px;
+  border-color: #808080 white white #808080;
+}
+
+.resetStyle {
+  width: 50px;
+  height: 50px;
+  background: url('~/src/assets/images/icons.png') no-repeat;
+  background-color: #c6c6c6;
+  border: solid, 5px;
+  border-color: white #808080 #808080 white;
+}
+
+.timeStyle {
+  width: 80px;
+  height: 50px;
+  background-color: #c6c6c6;
+  border: solid, 2px;
+  border-color: #808080 white white #808080;
+}
+
 .boardStyle {
   display: flex;
   flex-wrap: wrap;
-  width: 270px;
-  height: 270px;
+  width: 280px;
+  height: 280px;
   background-color: gainsboro;
+  border: solid, 5px;
+  border-color: #808080 white white #808080;
 }
 
 .cellStyle {
@@ -28,12 +80,14 @@
   justify-content: center;
   width: 30px;
   height: 30px;
-  border: solid 1px gray;
+  border: solid 1px #919191;
 }
 
 .fillStyle {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   text-align: center;
-  background-color: white;
+  background-color: #c6c6c6;
+  border: solid, 3px;
+  border-color: white #808080 #808080 white;
 }

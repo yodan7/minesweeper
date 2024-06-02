@@ -1,4 +1,4 @@
-import { use, useState } from 'react';
+import React, { use, useState } from 'react';
 import styles from './index.module.css';
 
 const Home = () => {
@@ -17,11 +17,7 @@ const Home = () => {
   // 2-9 -> 数字セル
   //ボムの詳細マップ
   const [bombMap, setBombMap] = useState([...Array(9)].map(() => [...Array(9)].map(() => 0)));
-
-  const isPlaying = userInput.some((row) => row.some((input) => input !== 0));
-  const isFailure = userInput.some((row, y) =>
-    row.some((input, x) => input === 1 && bombMap[y][x] === 1),
-  );
+  console.log('bombMap1', bombMap);
 
   // -1 -> 石
   // 0 -> 画像無しセル
@@ -30,10 +26,14 @@ const Home = () => {
   // 10 -> 石+旗
   // 11 -> ボムセル
   //表示するマップ
-  const board: number[][] = [...Array(9)].map(() => [...Array(9)].map(() => -1));
-
-  //boardはクリック関係なくuserInputを参照だけしてマップを作ればよい
+  const [board, setBoard] = useState([...Array(9)].map(() => [...Array(9)].map(() => -1)));
   console.log('board', board);
+
+  const isPlaying = userInput.some((row) => row.some((input) => input !== 0));
+  const isFailure = userInput.some((row, y) =>
+    row.some((input, x) => input === 1 && bombMap[y][x] === 1),
+  );
+  const isSuccess = !isFailure && board.flat().length <= bombCount;
 
   const [samplePos, setSamplePos] = useState(0);
   console.log('sample', samplePos);
@@ -61,18 +61,34 @@ const Home = () => {
 
   // console.log(zeroList);
 
-  const checkZerolist = (x: number, y: number) => {
+  const noContext = (event: React.MouseEvent) => {
+    event.preventDefault();
+  };
+
+  const clickR = (x: number, y: number) => {
+    if (isFailure) {
+      return;
+    }
+
+    console.log('HELLO');
+    userInput[y][x] = 2;
+    board[y][x] = 9;
+    setBoard(board);
+    console.log(userInput);
+  };
+
+  const checkZeroCells = (x: number, y: number, newMap, newInput) => {
     console.log('checkZerolist');
-    if (x < 0 || x >= 9 || y < 0 || y >= 9) {
+    console.log('bombMap2', newMap);
+
+    if (x < 0 || x >= 9 || y < 0 || y >= 9 || newMap[y][x] === 1) {
       return;
     }
 
-    if (bombMap[y][x] >= 2) {
-      board[y][x] = bombMap[y][x] - 1;
+    if (newMap[y][x] >= 2) {
+      board[y][x] = newMap[y][x] - 1;
       return;
-    }
-
-    if (board[y][x] === -1) {
+    } else if (board[y][x] === -1) {
       board[y][x] = 0;
       console.log('OpenCell');
 
@@ -80,7 +96,7 @@ const Home = () => {
         const aroundY = y + dy;
         const aroundX = x + dx;
 
-        checkZerolist(aroundX, aroundY);
+        checkZeroCells(aroundX, aroundY, newMap, newInput);
       });
     }
   };
@@ -88,11 +104,19 @@ const Home = () => {
   const clickstone = (x: number, y: number) => {
     console.log(x, y);
     const newInput = structuredClone(userInput);
+    const newMap = structuredClone(bombMap);
 
     //初回のみbombMapに爆弾、boardに数字をセット
-    const isFirst = board.flat().filter((point) => point !== -1).length === 0;
+
+    if (isFailure) {
+      return;
+    }
+
+    const isFirst = !bombMap.flat().includes(1);
     if (isFirst) {
-      const newMap = structuredClone(bombMap);
+      console.log('bombMap3', bombMap);
+
+      // const newMap = structuredClone(bombMap);
 
       console.log('isFirst2', isFirst, board);
       let p: number = 0;
@@ -123,7 +147,7 @@ const Home = () => {
           ) {
             console.log('aroundNum');
             if (newMap[aroundY][aroundX] >= 2) {
-              newMap[y][x] += 1;
+              newMap[aroundY][aroundX]++;
             } else {
               newMap[aroundY][aroundX] = 2;
             }
@@ -131,52 +155,92 @@ const Home = () => {
         });
       }
 
-      setBombMap(bombMap);
-      console.log('bombMap', bombMap);
+      setBombMap(newMap);
+      console.log('bombMap4', newMap);
+      console.log('bombMap5', bombMap);
       console.log('board3', board);
     }
-
     //newInputの左クリック
-
-    checkZerolist(x, y);
-    console.log('board2', board);
-    console.log('bombMap', bombMap);
 
     newInput[y][x] = 1;
     setUserInput(newInput);
+    console.log('newInput', newInput);
+    console.log('userInput', userInput);
+
+    checkZeroCells(x, y, newMap, newInput);
+
+    setBoard(board);
   };
+
+  console.log('bombMap6', bombMap);
 
   console.log('board77', board);
 
+  if (isFailure) {
+    bombMap.forEach((row, y) =>
+      row.forEach((cell, x) => {
+        if (bombMap[y][x] === 1) {
+          board[y][x] = 11;
+        }
+      }),
+    );
+  }
+
+  // const Reload = (): void => {
+  //   window.location.reload();
+  // };
   return (
     <div className={styles.container}>
-      <div className={styles.boardStyle}>
-        {board.map((row, y) =>
-          row.map((cell, x) => (
-            <div className={styles.cellStyle} key={`${x}-${y}`} onClick={() => clickstone(x, y)}>
-              {cell === -1 ? (
-                <div className={styles.fillStyle} /> //石
-              ) : cell === 0 ? ( //セル無し
-                <div />
-              ) : (
-                (console.log('反映', board),
-                (
-                  <div
-                    className={styles.sampleStyle}
-                    style={{ backgroundPosition: `${-30 * cell - 1}px 0px` }}
-                  />
-                ))
-              )}
-            </div>
-          )),
-        )}
-        <div>{isFailure && <div>負け</div>}</div>
+      <div className={styles.backboardStyle}>
+        <div className={styles.infoStyle}>
+          <div className={styles.countStyle} />
+          <div
+            className={styles.resetStyle}
+            style={{ backgroundPosition: `${-30 * (!isFailure ? 11 : isSuccess ? 12 : 13)}px 0px` }}
+          />
+          <div className={styles.timeStyle} />
+        </div>
+        <div className={styles.boardStyle}>
+          {board.map((row, y) =>
+            row.map((cell, x) => (
+              <div
+                onContextMenu={() => {
+                  console.log('Hello');
+
+                  noContext;
+                  clickR(x, y);
+                }}
+                className={styles.cellStyle}
+                key={`${x}-${y}`}
+                onClick={() => {
+                  clickstone(x, y);
+                }}
+              >
+                {cell === -1 ? (
+                  <div className={styles.fillStyle} /> //石
+                ) : cell === 0 ? ( //セル無し
+                  <div />
+                ) : (
+                  (console.log('反映', board),
+                  (
+                    <div
+                      className={styles.sampleStyle}
+                      style={{ backgroundPosition: `${-30 * (cell - 1)}px 0px` }}
+                    />
+                  ))
+                )}
+              </div>
+            )),
+          )}
+          <div>{isFailure && <div>負け</div>}</div>
+          <div>{isSuccess && <div>勝ち</div>}</div>
+        </div>
+        {/* <div
+          className={styles.sampleStyle}
+          style={{ backgroundPosition: `${-30 * samplePos}px 0px` }}
+        />
+        <button onClick={() => setSamplePos((p) => (p + 1) % 14)}>sample</button> */}
       </div>
-      <div
-        className={styles.sampleStyle}
-        style={{ backgroundPosition: `${-30 * samplePos}px 0px` }}
-      />
-      <button onClick={() => setSamplePos((p) => (p + 1) % 14)}>{board}sample</button>
     </div>
   );
 };
