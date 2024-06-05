@@ -12,8 +12,8 @@ const Home = () => {
   );
 
   const bombCount = 10;
-  // 0 -> ボムあり
-  // 1 -> ボムなし
+  // 0 -> ボムなし
+  // 1 -> ボムあり
   // 2-9 -> 数字セル
   //ボムの詳細マップ
   const [bombMap, setBombMap] = useState([...Array(9)].map(() => [...Array(9)].map(() => 0)));
@@ -26,7 +26,7 @@ const Home = () => {
   // 10 -> 石+旗
   // 11 -> ボムセル
   //表示するマップ
-  const [board, setBoard] = useState([...Array(9)].map(() => [...Array(9)].map(() => -1)));
+  const board = [...Array(9)].map(() => [...Array(9)].map(() => -1));
   console.log('board', board);
 
   const isPlaying = userInput.some((row) => row.some((input) => input !== 0));
@@ -35,8 +35,8 @@ const Home = () => {
   );
   const isSuccess = !isFailure && board.flat().length <= bombCount;
 
-  const [samplePos, setSamplePos] = useState(0);
-  console.log('sample', samplePos);
+  // const [samplePos, setSamplePos] = useState(0);
+  // console.log('sample', samplePos);
 
   const directions = [
     [-1, 0],
@@ -61,36 +61,50 @@ const Home = () => {
 
   // console.log(zeroList);
 
+  //メニューを非表示にする
   const noContext = (event: React.MouseEvent) => {
+    console.log('非表示');
+
     event.preventDefault();
   };
 
+  //右クリックに関する関数
   const clickR = (x: number, y: number) => {
     if (isFailure) {
       return;
     }
+    const newInput = structuredClone(userInput);
 
-    console.log('HELLO');
-    userInput[y][x] = 2;
-    board[y][x] = 9;
-    setBoard(board);
-    console.log(userInput);
+    if (newInput[y][x] >= 2) {
+      if (newInput[y][x] === 3) {
+        newInput[y][x] = 0;
+      } else {
+        newInput[y][x] = 3;
+      }
+    } else if (newInput[y][x] === 0) {
+      newInput[y][x] = 2;
+    }
+    console.log('右クリック', userInput, board);
+
+    setUserInput(newInput);
   };
 
+  //再帰的に石を開ける関数
   const checkZeroCells = (x: number, y: number, newMap, newInput) => {
     console.log('checkZerolist');
     console.log('bombMap2', newMap);
 
-    if (x < 0 || x >= 9 || y < 0 || y >= 9 || newMap[y][x] === 1) {
+    if (x < 0 || x >= 9 || y < 0 || y >= 9) {
       return;
     }
 
-    if (newMap[y][x] >= 2) {
-      board[y][x] = newMap[y][x] - 1;
-      return;
-    } else if (board[y][x] === -1) {
-      board[y][x] = 0;
+    if (newInput[y][x] !== 1) {
+      newInput[y][x] = 1;
       console.log('OpenCell');
+
+      if (newMap[y][x] >= 1) {
+        return;
+      }
 
       directions.forEach(([dy, dx]) => {
         const aroundY = y + dy;
@@ -101,6 +115,7 @@ const Home = () => {
     }
   };
 
+  //クリックしたときにボムや数字を配置する関数
   const clickstone = (x: number, y: number) => {
     console.log(x, y);
     const newInput = structuredClone(userInput);
@@ -115,9 +130,6 @@ const Home = () => {
     const isFirst = !bombMap.flat().includes(1);
     if (isFirst) {
       console.log('bombMap3', bombMap);
-
-      // const newMap = structuredClone(bombMap);
-
       console.log('isFirst2', isFirst, board);
       let p: number = 0;
       while (p < bombCount) {
@@ -162,29 +174,42 @@ const Home = () => {
     }
     //newInputの左クリック
 
-    newInput[y][x] = 1;
-    setUserInput(newInput);
+    // // newInput[y][x] = 1;
+    // setUserInput(newInput);
     console.log('newInput', newInput);
     console.log('userInput', userInput);
 
     checkZeroCells(x, y, newMap, newInput);
 
-    setBoard(board);
+    // setBoard(board);
+    setUserInput(newInput);
   };
 
   console.log('bombMap6', bombMap);
 
   console.log('board77', board);
 
-  if (isFailure) {
-    bombMap.forEach((row, y) =>
-      row.forEach((cell, x) => {
-        if (bombMap[y][x] === 1) {
-          board[y][x] = 11;
+  //userInputとbombMapをもとにboard作成
+  board.forEach((row, y) =>
+    row.forEach((_, x) => {
+      if (userInput[y][x] === 1) {
+        if (bombMap[y][x] >= 2) {
+          board[y][x] = bombMap[y][x] - 1;
+        } else {
+          board[y][x] = 0;
         }
-      }),
-    );
-  }
+      }
+      if (userInput[y][x] === 2) {
+        board[y][x] = 9;
+      }
+      if (userInput[y][x] === 3) {
+        board[y][x] = 10;
+      }
+      if (isFailure && bombMap[y][x] === 1) {
+        board[y][x] = 11;
+      }
+    }),
+  );
 
   // const Reload = (): void => {
   //   window.location.reload();
@@ -205,8 +230,7 @@ const Home = () => {
             row.map((cell, x) => (
               <div
                 onContextMenu={() => {
-                  console.log('Hello');
-
+                  console.log('右クリック');
                   noContext;
                   clickR(x, y);
                 }}
@@ -220,6 +244,13 @@ const Home = () => {
                   <div className={styles.fillStyle} /> //石
                 ) : cell === 0 ? ( //セル無し
                   <div />
+                ) : cell === 9 || cell === 10 ? (
+                  <div className={styles.fillStyle}>
+                    <div
+                      className={styles.sampleStyle}
+                      style={{ backgroundPosition: `${-30 * (cell - 1)}px 0px` }}
+                    />
+                  </div>
                 ) : (
                   (console.log('反映', board),
                   (
