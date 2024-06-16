@@ -10,9 +10,10 @@
 }
 
 .sampleStyle {
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
   background: url('~/src/assets/images/icons.png') no-repeat;
+  background-size: 350px 25px;
 }
 
 .backboardStyle {
@@ -40,7 +41,7 @@
 }
 
 .countStyle {
-  width: 80px;
+  width: 88px;
   height: 50px;
   background-color: #c6c6c6;
   border: solid, 2px;
@@ -52,6 +53,7 @@
   height: 50px;
   background: url('~/src/assets/images/icons.png') no-repeat;
   background-color: #c6c6c6;
+  background-size: 560px 40px;
   border: solid, 5px;
   border-color: white #808080 #808080 white;
 }
@@ -67,6 +69,8 @@
 .boardStyle {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
   width: 280px;
   height: 280px;
   background-color: gainsboro;
@@ -80,14 +84,183 @@
   justify-content: center;
   width: 30px;
   height: 30px;
+  text-align: center;
   border: solid 1px #919191;
 }
 
 .fillStyle {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   text-align: center;
   background-color: #c6c6c6;
   border: solid, 3px;
   border-color: white #808080 #808080 white;
+}
+
+.rightfillStyle {
+  width: 28px;
+  height: 28px;
+  text-align: center;
+  background: url('~/src/assets/images/icons.png') no-repeat;
+  background-color: #c6c6c6;
+  background-size: 308px 22px;
+  border: solid, 3px;
+  border-color: white #808080 #808080 white;
+}
+
+/* #right-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#right-icon {
+  text-align: center;
+  background-color: red;
+  border: solid;
+  border-color: red;
+} */
+
+.display {
+  position: relative;
+  box-sizing: border-box;
+  display: inline-block;
+  flex-direction: row;
+  width: 28px;
+  height: 46px;
+  overflow: hidden;
+  background-color: #111;
+  border: solid 3px #111;
+}
+
+.display::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  content: '';
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.display::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 5px;
+  content: '';
+  border-top: solid 12px #111;
+  border-bottom: solid 12px #111;
+  transform: translate(-50%, -50%);
+}
+
+.d0::before {
+  background-color: #600000;
+  box-shadow:
+    -14px -14px #ff0003,
+    0 -14px #ff0003,
+    -14px 0 #ff0003,
+    0 14px #ff0003,
+    14px 0 #ff0003,
+    14px 14px #ff0003;
+}
+
+.d1::before {
+  background-color: #600000;
+  box-shadow:
+    -14px -14px #600000,
+    0 -14px #ff0003,
+    -14px 0 #600000,
+    0 14px #600000,
+    14px 0 #ff0003,
+    14px 14px #600000;
+}
+
+.d2::before {
+  background-color: #ff0003;
+  box-shadow:
+    -14px -14px #ff0003,
+    0 -14px #ff0003,
+    -14px 0 #600000,
+    0 14px #ff0003,
+    14px 0 #600000,
+    14px 14px #ff0003;
+}
+
+.d3::before {
+  background-color: #ff0003;
+  box-shadow:
+    -14px -14px #ff0003,
+    0 -14px #ff0003,
+    -14px 0 #600000,
+    0 14px #600000,
+    14px 0 #ff0003,
+    14px 14px #ff0003;
+}
+
+.d4::before {
+  background-color: #ff0003;
+  box-shadow:
+    -14px -14px #600000,
+    0 -14px #ff0003,
+    -14px 0 #ff0003,
+    0 14px #600000,
+    14px 0 #ff0003,
+    14px 14px #600000;
+}
+
+.d5::before {
+  background-color: #ff0003;
+  box-shadow:
+    -14px -14px #ff0003,
+    0 -14px #600000,
+    -14px 0 #ff0003,
+    0 14px #600000,
+    14px 0 #ff0003,
+    14px 14px #ff0003;
+}
+
+.d6::before {
+  background-color: #ff0003;
+  box-shadow:
+    -14px -14px #ff0003,
+    0 -14px #600000,
+    -14px 0 #ff0003,
+    0 14px #ff0003,
+    14px 0 #ff0003,
+    14px 14px #ff0003;
+}
+
+.d7::before {
+  background-color: #600000;
+  box-shadow:
+    -14px -14px #ff0003,
+    0 -14px #ff0003,
+    -14px 0 #ff0003,
+    0 14px #600000,
+    14px 0 #ff0003,
+    14px 14px #600000;
+}
+
+.d8::before {
+  background-color: #ff0003;
+  box-shadow:
+    -15px -15px #ff0003,
+    0 -15px #ff0003,
+    -15px 0 #ff0003,
+    0 15px #ff0003,
+    15px 0 #ff0003,
+    15px 15px #ff0003;
+}
+
+.d9::before {
+  background-color: #ff0003;
+  box-shadow:
+    -14px -14px #ff0003,
+    0 -14px #ff0003,
+    -14px 0 #ff0003,
+    0 14px #600000,
+    14px 0 #ff0003,
+    14px 14px #ff0003;
 }

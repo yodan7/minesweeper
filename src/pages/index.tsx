@@ -11,7 +11,7 @@ const Home = () => {
     [...Array(9)].map(() => [...Array(9)].map(() => 0)),
   );
 
-  const bombCount = 10;
+  let bombCount = 10;
   // 0 -> ボムなし
   // 1 -> ボムあり
   // 2-9 -> 数字セル
@@ -29,11 +29,15 @@ const Home = () => {
   const board = [...Array(9)].map(() => [...Array(9)].map(() => -1));
   console.log('board', board);
 
+  const isFirst = !bombMap.flat().includes(1);
   const isPlaying = userInput.some((row) => row.some((input) => input !== 0));
   const isFailure = userInput.some((row, y) =>
     row.some((input, x) => input === 1 && bombMap[y][x] === 1),
   );
-  const isSuccess = !isFailure && board.flat().length <= bombCount;
+  const isSuccess =
+    !isFailure &&
+    userInput.flat().filter((cell) => cell !== 1).length <=
+      bombMap.flat().filter((cell) => cell === 1).length;
 
   // const [samplePos, setSamplePos] = useState(0);
   // console.log('sample', samplePos);
@@ -70,7 +74,7 @@ const Home = () => {
 
   //右クリックに関する関数
   const clickR = (x: number, y: number) => {
-    if (isFailure) {
+    if (isFailure || isFirst) {
       return;
     }
     const newInput = structuredClone(userInput);
@@ -121,13 +125,11 @@ const Home = () => {
     const newInput = structuredClone(userInput);
     const newMap = structuredClone(bombMap);
 
-    //初回のみbombMapに爆弾、boardに数字をセット
-
     if (isFailure) {
       return;
     }
+    //初回のみbombMapに爆弾、boardに数字をセット
 
-    const isFirst = !bombMap.flat().includes(1);
     if (isFirst) {
       console.log('bombMap3', bombMap);
       console.log('isFirst2', isFirst, board);
@@ -199,29 +201,47 @@ const Home = () => {
           board[y][x] = 0;
         }
       }
+      //はてな
       if (userInput[y][x] === 2) {
         board[y][x] = 9;
       }
+      //旗
       if (userInput[y][x] === 3) {
         board[y][x] = 10;
+        if (bombCount > 0) {
+          bombCount--;
+        }
       }
+      //失敗したらボムを表示
       if (isFailure && bombMap[y][x] === 1) {
         board[y][x] = 11;
+      }
+      //成功時したらボムを旗に変える
+      if (isSuccess && bombMap[y][x] === 1) {
+        board[y][x] = 10;
       }
     }),
   );
 
-  // const Reload = (): void => {
-  //   window.location.reload();
-  // };
+  //ページをリロードする関数
+  const Reload = () => {
+    window.location.reload();
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.backboardStyle}>
-        <div className={styles.infoStyle}>
-          <div className={styles.countStyle} />
+        <div className={styles.infoStyle} onClick={Reload}>
+          <div className={styles.countStyle}>
+            <div className={`${styles.display} ${styles[`d${Math.floor(bombCount / 100)}`]}`} />
+            <div
+              className={`${styles.display} ${styles[`d${Math.floor((bombCount % 100) / 10)}`]}`}
+            />
+            <div className={`${styles.display} ${styles[`d${bombCount % 10}`]}`} />
+          </div>
           <div
             className={styles.resetStyle}
-            style={{ backgroundPosition: `${-30 * (!isFailure ? 11 : isSuccess ? 12 : 13)}px 0px` }}
+            style={{ backgroundPosition: `${-40 * (isSuccess ? 12 : isFailure ? 13 : 11)}px 0px` }}
           />
           <div className={styles.timeStyle} />
         </div>
@@ -231,7 +251,7 @@ const Home = () => {
               <div
                 onContextMenu={() => {
                   console.log('右クリック');
-                  noContext;
+                  noContext(event);
                   clickR(x, y);
                 }}
                 className={styles.cellStyle}
@@ -245,18 +265,26 @@ const Home = () => {
                 ) : cell === 0 ? ( //セル無し
                   <div />
                 ) : cell === 9 || cell === 10 ? (
-                  <div className={styles.fillStyle}>
-                    <div
-                      className={styles.sampleStyle}
-                      style={{ backgroundPosition: `${-30 * (cell - 1)}px 0px` }}
-                    />
-                  </div>
+                  <div
+                    className={styles.rightfillStyle}
+                    style={{
+                      backgroundPosition: `${-22 * (cell - 1)}px 0px`,
+                      backgroundColor:
+                        isFailure && userInput[y][x] === 3 && bombMap[y][x] !== 1
+                          ? '#FF82B2'
+                          : 'inherit',
+                    }}
+                  />
                 ) : (
-                  (console.log('反映', board),
+                  (console.log('反映', board, isSuccess),
                   (
                     <div
                       className={styles.sampleStyle}
-                      style={{ backgroundPosition: `${-30 * (cell - 1)}px 0px` }}
+                      style={{
+                        backgroundPosition: `${-25 * (cell - 1)}px 0px`,
+                        backgroundColor:
+                          userInput[y][x] === 1 && bombMap[y][x] === 1 ? 'red' : 'inherit',
+                      }}
                     />
                   ))
                 )}
