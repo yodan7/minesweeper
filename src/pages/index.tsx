@@ -1,7 +1,9 @@
-import React, { use, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from './index.module.css';
 
 const Home = () => {
+  const [startTime, setStartTime] = useState<number | null>(null);
+
   // 0 -> 未クリック
   // 1 -> クリック
   // 2 -> ？
@@ -30,7 +32,7 @@ const Home = () => {
   console.log('board', board);
 
   const isFirst = !bombMap.flat().includes(1);
-  const isPlaying = userInput.some((row) => row.some((input) => input !== 0));
+  // const isPlaying = userInput.some((row) => row.some((input) => input !== 0));
   const isFailure = userInput.some((row, y) =>
     row.some((input, x) => input === 1 && bombMap[y][x] === 1),
   );
@@ -53,17 +55,53 @@ const Home = () => {
     [-1, -1],
   ];
 
-  // const zeroList: { x: number; y: number }[] = [];
+  //タイマー
+  const getElapsedTime = () => {
+    if (startTime === null) {
+      return 0;
+    }
+    return Math.floor((Date.now() - startTime) / 1000);
+  };
 
-  // bombMap.forEach((row, y) =>
-  //   row.forEach((_, x) => {
-  //     if (bombMap[y][x] === 0) {
-  //       zeroList.push({ x, y });
-  //     }
-  //   }),
-  // );
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
 
-  // console.log(zeroList);
+    if (startTime !== null) {
+      interval = setInterval(() => {
+        const elapsed = getElapsedTime();
+        const hundreds = Math.floor(elapsed / 100);
+        const tens = Math.floor((elapsed % 100) / 10);
+        const ones = elapsed % 10;
+
+        document.getElementById('hundreds')!.className =
+          `${styles.display} ${styles[`d${hundreds}`]}`;
+        document.getElementById('tens')!.className = `${styles.display} ${styles[`d${tens}`]}`;
+        document.getElementById('ones')!.className = `${styles.display} ${styles[`d${ones}`]}`;
+      }, 1000);
+    }
+
+    const checkGameState = () => {
+      const isFailure = userInput.some((row, y) =>
+        row.some((input, x) => input === 1 && bombMap[y][x] === 1),
+      );
+      const isSuccess =
+        !isFailure &&
+        userInput.flat().filter((cell) => cell !== 1).length <=
+          bombMap.flat().filter((cell) => cell === 1).length;
+
+      if (isFailure || isSuccess) {
+        setStartTime(null);
+      }
+    };
+
+    checkGameState();
+
+    return () => {
+      if (interval !== null) {
+        clearInterval(interval);
+      }
+    };
+  }, [startTime, userInput, bombMap]);
 
   //メニューを非表示にする
   const noContext = (event: React.MouseEvent) => {
@@ -131,6 +169,8 @@ const Home = () => {
     //初回のみbombMapに爆弾、boardに数字をセット
 
     if (isFirst) {
+      setStartTime(Date.now());
+
       console.log('bombMap3', bombMap);
       console.log('isFirst2', isFirst, board);
       let p: number = 0;
@@ -243,7 +283,11 @@ const Home = () => {
             className={styles.resetStyle}
             style={{ backgroundPosition: `${-40 * (isSuccess ? 12 : isFailure ? 13 : 11)}px 0px` }}
           />
-          <div className={styles.timeStyle} />
+          <div className={styles.timeStyle}>
+            <div id="hundreds" className={`${styles.display} ${styles.d0}`} />
+            <div id="tens" className={`${styles.display} ${styles.d0}`} />
+            <div id="ones" className={`${styles.display} ${styles.d0}`} />
+          </div>
         </div>
         <div className={styles.boardStyle}>
           {board.map((row, y) =>
