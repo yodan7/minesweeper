@@ -41,9 +41,6 @@ const Home = () => {
     userInput.flat().filter((cell) => cell !== 1).length <=
       bombMap.flat().filter((cell) => cell === 1).length;
 
-  // const [samplePos, setSamplePos] = useState(0);
-  // console.log('sample', samplePos);
-
   const directions = [
     [-1, 0],
     [-1, 1],
@@ -56,27 +53,29 @@ const Home = () => {
   ];
 
   //タイマー
-  const getElapsedTime = () => {
-    if (startTime === null) {
-      return 0;
-    }
-    return Math.floor((Date.now() - startTime) / 1000);
-  };
-
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
 
     if (startTime !== null) {
       interval = setInterval(() => {
-        const elapsed = getElapsedTime();
+        const elapsed = startTime === null ? 0 : Math.floor((Date.now() - startTime) / 1000);
         const hundreds = Math.floor(elapsed / 100);
         const tens = Math.floor((elapsed % 100) / 10);
         const ones = elapsed % 10;
 
-        document.getElementById('hundreds')!.className =
-          `${styles.display} ${styles[`d${hundreds}`]}`;
-        document.getElementById('tens')!.className = `${styles.display} ${styles[`d${tens}`]}`;
-        document.getElementById('ones')!.className = `${styles.display} ${styles[`d${ones}`]}`;
+        const hundredsElement = document.getElementById('hundreds');
+        const tensElement = document.getElementById('tens');
+        const onesElement = document.getElementById('ones');
+
+        if (hundredsElement) {
+          hundredsElement.className = `${styles.display} ${styles[`d${hundreds}`]}`;
+        }
+        if (tensElement) {
+          tensElement.className = `${styles.display} ${styles[`d${tens}`]}`;
+        }
+        if (onesElement) {
+          onesElement.className = `${styles.display} ${styles[`d${ones}`]}`;
+        }
       }, 1000);
     }
 
@@ -227,10 +226,6 @@ const Home = () => {
     setUserInput(newInput);
   };
 
-  console.log('bombMap6', bombMap);
-
-  console.log('board77', board);
-
   //userInputとbombMapをもとにboard作成
   board.forEach((row, y) =>
     row.forEach((_, x) => {
@@ -335,23 +330,10 @@ const Home = () => {
               </div>
             )),
           )}
-          <div>{isFailure && <div>負け</div>}</div>
-          <div>{isSuccess && <div>勝ち</div>}</div>
         </div>
-        {/* <div
-          className={styles.sampleStyle}
-          style={{ backgroundPosition: `${-30 * samplePos}px 0px` }}
-        />
-        <button onClick={() => setSamplePos((p) => (p + 1) % 14)}>sample</button> */}
       </div>
     </div>
   );
 };
 
 export default Home;
-// 初回後にボムセット
-// クリックするたびに旗など変更
-// setで画面変わるのがuseStatusの主作用
-// useEffectは副作用の隔離・クリーンナップ：時計
-// 機能全部・見た目・useState減らす・初級～上級・スマホ対応・爆弾サイズカスタム
-//map(function(){})がmap(()=>{})となってる、すべてコードを関数で書かなきゃだからかも
