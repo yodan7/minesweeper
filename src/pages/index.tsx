@@ -2,7 +2,27 @@ import React, { useEffect, useState } from 'react';
 import styles from './index.module.css';
 
 const Home = () => {
+  //タイマー
   const [startTime, setStartTime] = useState<number | null>(null);
+
+  //難易度
+  const [level, setLevel] = useState<'lev1' | 'lev2' | 'lev3' | 'custom'>('lev1');
+
+  const [InputValue, setInputValue] = useState([30, 30, 10]);
+
+  const setLenBomb = (level) => {
+    if (level === 'lev1') {
+      return [9, 9, 10];
+    } else if (level === 'lev2') {
+      return [16, 16, 40];
+    } else if (level === 'lev3') {
+      return [16, 30, 99];
+    } else if (level === 'custom') {
+      return InputValue;
+    }
+  };
+  const lenY = setLenBomb(level)[0];
+  const lenX = setLenBomb(level)[1];
 
   // 0 -> 未クリック
   // 1 -> クリック
@@ -10,15 +30,16 @@ const Home = () => {
   // 3 -> 旗
   //クリックの詳細マップ
   const [userInput, setUserInput] = useState<(0 | 1 | 2 | 3)[][]>(
-    [...Array(9)].map(() => [...Array(9)].map(() => 0)),
+    [...Array(lenY)].map(() => [...Array(lenX)].map(() => 0)),
   );
 
-  let bombCount = 10;
+  const bombCount = setLenBomb(level)[2];
+
   // 0 -> ボムなし
   // 1 -> ボムあり
   // 2-9 -> 数字セル
   //ボムの詳細マップ
-  const [bombMap, setBombMap] = useState([...Array(9)].map(() => [...Array(9)].map(() => 0)));
+  const [bombMap, setBombMap] = useState([...Array(lenY)].map(() => [...Array(lenX)].map(() => 0)));
   console.log('bombMap1', bombMap);
 
   // -1 -> 石
@@ -28,7 +49,7 @@ const Home = () => {
   // 10 -> 石+旗
   // 11 -> ボムセル
   //表示するマップ
-  const board = [...Array(9)].map(() => [...Array(9)].map(() => -1));
+  const board = [...Array(lenY)].map(() => [...Array(lenX)].map(() => -1));
   console.log('board', board);
 
   const isFirst = !bombMap.flat().includes(1);
@@ -68,13 +89,13 @@ const Home = () => {
         const onesElement = document.getElementById('ones');
 
         if (hundredsElement) {
-          hundredsElement.className = `${styles.display} ${styles[`d${hundreds}`]}`;
+          hundredsElement.className = `${styles.displayStyle} ${styles[`d${hundreds}`]}`;
         }
         if (tensElement) {
-          tensElement.className = `${styles.display} ${styles[`d${tens}`]}`;
+          tensElement.className = `${styles.displayStyle} ${styles[`d${tens}`]}`;
         }
         if (onesElement) {
-          onesElement.className = `${styles.display} ${styles[`d${ones}`]}`;
+          onesElement.className = `${styles.displayStyle} ${styles[`d${ones}`]}`;
         }
       }, 1000);
     }
@@ -131,11 +152,11 @@ const Home = () => {
   };
 
   //再帰的に石を開ける関数
-  const checkZeroCells = (x: number, y: number, newMap, newInput) => {
+  const checkZeroCells = (x: number, y: number, newMap: any, newInput: any) => {
     console.log('checkZerolist');
     console.log('bombMap2', newMap);
 
-    if (x < 0 || x >= 9 || y < 0 || y >= 9) {
+    if (x < 0 || x >= lenX || y < 0 || y >= lenY) {
       return;
     }
 
@@ -176,8 +197,8 @@ const Home = () => {
       while (p < bombCount) {
         console.log('ループ', p);
 
-        const bombY: number = Math.floor(Math.random() * 9);
-        const bombX: number = Math.floor(Math.random() * 9);
+        const bombY: number = Math.floor(Math.random() * lenY);
+        const bombX: number = Math.floor(Math.random() * lenX);
         if (newMap[bombY][bombX] === 1 || (bombY === y && bombX === x)) {
           //ボム配置ループやり直し
           console.log('被り', bombY, bombX);
@@ -213,10 +234,6 @@ const Home = () => {
       console.log('bombMap5', bombMap);
       console.log('board3', board);
     }
-    //newInputの左クリック
-
-    // // newInput[y][x] = 1;
-    // setUserInput(newInput);
     console.log('newInput', newInput);
     console.log('userInput', userInput);
 
@@ -243,9 +260,6 @@ const Home = () => {
       //旗
       if (userInput[y][x] === 3) {
         board[y][x] = 10;
-        if (bombCount > 0) {
-          bombCount--;
-        }
       }
       //失敗したらボムを表示
       if (isFailure && bombMap[y][x] === 1) {
@@ -258,33 +272,114 @@ const Home = () => {
     }),
   );
 
+  const RemainBomb = bombCount - board.flat().filter((flag) => flag === 10).length;
+
   //ページをリロードする関数
   const Reload = () => {
     window.location.reload();
   };
 
+  //ボードを作成する関数
+  const MakeBoard = (lenY, lenX) => {
+    setStartTime(null);
+
+    console.log('level', level);
+    console.log('lenY, lenX', lenY, lenX);
+    setUserInput([...Array(lenY)].map(() => [...Array(lenX)].map(() => 0)));
+    setBombMap([...Array(lenY)].map(() => [...Array(lenX)].map(() => 0)));
+  };
+
+  //レベルをセットする関数
+  const Levelset = (level) => {
+    setLevel(level);
+    let lenY = 9;
+    let lenX = 9;
+
+    if (level === 'lev1') {
+      lenY = 9;
+      lenX = 9;
+    } else if (level === 'lev2') {
+      lenY = 16;
+      lenX = 16;
+    } else if (level === 'lev3') {
+      lenY = 16;
+      lenX = 30;
+    } else if (level === 'custom') {
+      lenY = 30;
+      lenX = 30;
+    }
+    MakeBoard(lenY, lenX);
+  };
+
+  //カスタムの入力値を取得する関数
+
   return (
     <div className={styles.container}>
-      <div className={styles.backboardStyle}>
-        <div className={styles.infoStyle} onClick={Reload}>
+      <div className={styles.menueStyle}>
+        <div className={styles.levelStyle} onClick={() => Levelset('lev1')}>
+          初級
+        </div>
+        <div className={styles.levelStyle} onClick={() => Levelset('lev2')}>
+          中級
+        </div>
+        <div className={styles.levelStyle} onClick={() => Levelset('lev3')}>
+          上級
+        </div>
+        <div className={styles.levelStyle} onClick={() => Levelset('custom')}>
+          カスタム
+        </div>
+      </div>
+      <div className={styles.customStyle}>
+        <div className={styles.customStyle}>
+          幅：
+          <input type="text" value={30} size={3} id="width" />
+          高さ：
+          <input type="text" value={30} size={3} id="height" />
+          爆弾数：
+          <input type="text" value={30} size={3} id="bombCount" />
+          <button type="button" />
+        </div>
+      </div>
+      <div
+        className={styles.backboardStyle}
+        style={{
+          width: `${lenX * 30 + 60}px`,
+          height: `${lenY * 31 + 130}px`,
+        }}
+      >
+        <div
+          className={styles.infoStyle}
+          onClick={() => Reload()}
+          style={{
+            width: `${lenX * 30 + 10}px`,
+          }}
+        >
           <div className={styles.countStyle}>
-            <div className={`${styles.display} ${styles[`d${Math.floor(bombCount / 100)}`]}`} />
             <div
-              className={`${styles.display} ${styles[`d${Math.floor((bombCount % 100) / 10)}`]}`}
+              className={`${styles.displayStyle} ${styles[`d${Math.floor(RemainBomb / 100)}`]}`}
             />
-            <div className={`${styles.display} ${styles[`d${bombCount % 10}`]}`} />
+            <div
+              className={`${styles.displayStyle} ${styles[`d${Math.floor((RemainBomb % 100) / 10)}`]}`}
+            />
+            <div className={`${styles.displayStyle} ${styles[`d${RemainBomb % 10}`]}`} />
           </div>
           <div
             className={styles.resetStyle}
             style={{ backgroundPosition: `${-40 * (isSuccess ? 12 : isFailure ? 13 : 11)}px 0px` }}
           />
           <div className={styles.timeStyle}>
-            <div id="hundreds" className={`${styles.display} ${styles.d0}`} />
-            <div id="tens" className={`${styles.display} ${styles.d0}`} />
-            <div id="ones" className={`${styles.display} ${styles.d0}`} />
+            <div id="hundreds" className={`${styles.displayStyle} ${styles.d0}`} />
+            <div id="tens" className={`${styles.displayStyle} ${styles.d0}`} />
+            <div id="ones" className={`${styles.displayStyle} ${styles.d0}`} />
           </div>
         </div>
-        <div className={styles.boardStyle}>
+        <div
+          className={styles.boardStyle}
+          style={{
+            width: `${lenX * 30 + 10}px`,
+            height: `${lenY * 30 + 10}px`,
+          }}
+        >
           {board.map((row, y) =>
             row.map((cell, x) => (
               <div
