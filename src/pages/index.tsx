@@ -15,7 +15,7 @@ const Home = () => {
   const [customValues, setCustomVlues] = useState<number[]>([30, 30, 120]);
 
   //サイズと爆弾の数を決定
-  const setLenBomb = (level) => {
+  const setLenBomb = (level: 'lev1' | 'lev2' | 'lev3' | 'custom'): number[] => {
     if (level === 'lev1') {
       return [9, 9, 10];
     } else if (level === 'lev2') {
@@ -26,6 +26,7 @@ const Home = () => {
       console.log('customValues', customValues);
       return customValues;
     }
+    return [9, 9, 10]; // デフォルト値を追加
   };
   //サイズ
   const lenY = setLenBomb(level)[0];
@@ -124,7 +125,7 @@ const Home = () => {
   }, [startTime, userInput, bombMap]);
 
   //メニューを非表示にする
-  const noContext = (event: React.MouseEvent) => {
+  const noContext = (event: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
     console.log('非表示');
 
     event.preventDefault();
@@ -152,7 +153,12 @@ const Home = () => {
   };
 
   //再帰的に石を開ける関数
-  const checkZeroCells = (x: number, y: number, newMap: any, newInput: any) => {
+  const checkZeroCells = (
+    x: number,
+    y: number,
+    newMap: number[][],
+    newInput: (0 | 1 | 2 | 3)[][],
+  ): void => {
     console.log('checkZerolist');
     console.log('bombMap2', newMap);
 
@@ -280,7 +286,7 @@ const Home = () => {
   };
 
   //ボードを作成する関数
-  const MakeBoard = (lenY, lenX) => {
+  const MakeBoard = (lenY: number, lenX: number): void => {
     setStartTime(null);
     setTimer({ hundreds: 0, tens: 0, ones: 0 });
 
@@ -291,7 +297,7 @@ const Home = () => {
   };
 
   //レベルをセットする関数
-  const Levelset = (level) => {
+  const Levelset = (level: 'lev1' | 'lev2' | 'lev3' | 'custom'): void => {
     setLevel(level);
     let lenY = 9;
     let lenX = 9;
@@ -313,16 +319,18 @@ const Home = () => {
   };
 
   //カスタムの入力値を取得する関数
-  const handleInputChange = (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValues = [...inputValues];
-    const value = parseInt(event.target.value, 10);
-    newValues[index] = isNaN(value) ? 0 : value;
-    console.log('入力された値:', newValues);
+  const handleInputChange =
+    (index: number) =>
+    (event: React.ChangeEvent<HTMLInputElement>): void => {
+      const newValues = [...inputValues];
+      const value = parseInt(event.target.value, 10);
+      newValues[index] = isNaN(value) ? 0 : value;
+      console.log('入力された値:', newValues);
 
-    setInputValues(newValues);
-  };
+      setInputValues(newValues);
+    };
 
-  const handleSubmit = () => {
+  const handleSubmit = (): void => {
     setCustomVlues(inputValues);
     MakeBoard(inputValues[0], inputValues[1]);
     console.log('取得した値:', inputValues);
@@ -445,7 +453,7 @@ const Home = () => {
           {board.map((row, y) =>
             row.map((cell, x) => (
               <div
-                onContextMenu={() => {
+                onContextMenu={(event) => {
                   console.log('右クリック');
                   noContext(event);
                   clickR(x, y);
