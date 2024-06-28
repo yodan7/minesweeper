@@ -13,6 +13,14 @@
   display: flex;
   justify-content: space-around;
   width: 40%;
+  margin: 10px 0;
+}
+
+.customStyle {
+  display: flex;
+  justify-content: space-around;
+  width: 40%;
+  margin: 10px 0;
 }
 
 .sampleStyle {

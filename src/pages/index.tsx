@@ -4,12 +4,17 @@ import styles from './index.module.css';
 const Home = () => {
   //タイマー
   const [startTime, setStartTime] = useState<number | null>(null);
+  //タイマーの数値
+  const [timer, setTimer] = useState({ hundreds: 0, tens: 0, ones: 0 });
 
   //難易度
   const [level, setLevel] = useState<'lev1' | 'lev2' | 'lev3' | 'custom'>('lev1');
+  //難易度の入力欄の更新
+  const [inputValues, setInputValues] = useState<number[]>([30, 30, 120]);
+  //入力内容
+  const [customValues, setCustomVlues] = useState<number[]>([30, 30, 120]);
 
-  const [InputValue, setInputValue] = useState([30, 30, 10]);
-
+  //サイズと爆弾の数を決定
   const setLenBomb = (level) => {
     if (level === 'lev1') {
       return [9, 9, 10];
@@ -18,11 +23,14 @@ const Home = () => {
     } else if (level === 'lev3') {
       return [16, 30, 99];
     } else if (level === 'custom') {
-      return InputValue;
+      console.log('customValues', customValues);
+      return customValues;
     }
   };
+  //サイズ
   const lenY = setLenBomb(level)[0];
   const lenX = setLenBomb(level)[1];
+  console.log('最終的なサイズ：', lenY, lenX);
 
   // 0 -> 未クリック
   // 1 -> クリック
@@ -50,18 +58,22 @@ const Home = () => {
   // 11 -> ボムセル
   //表示するマップ
   const board = [...Array(lenY)].map(() => [...Array(lenX)].map(() => -1));
-  console.log('board', board);
+  console.log('board1', board);
 
+  //最初のクリックかどうか
   const isFirst = !bombMap.flat().includes(1);
   // const isPlaying = userInput.some((row) => row.some((input) => input !== 0));
+  //負けの判定
   const isFailure = userInput.some((row, y) =>
     row.some((input, x) => input === 1 && bombMap[y][x] === 1),
   );
+  //クリアの判定
   const isSuccess =
     !isFailure &&
     userInput.flat().filter((cell) => cell !== 1).length <=
       bombMap.flat().filter((cell) => cell === 1).length;
 
+  //八方向確認用
   const directions = [
     [-1, 0],
     [-1, 1],
@@ -84,19 +96,7 @@ const Home = () => {
         const tens = Math.floor((elapsed % 100) / 10);
         const ones = elapsed % 10;
 
-        const hundredsElement = document.getElementById('hundreds');
-        const tensElement = document.getElementById('tens');
-        const onesElement = document.getElementById('ones');
-
-        if (hundredsElement) {
-          hundredsElement.className = `${styles.displayStyle} ${styles[`d${hundreds}`]}`;
-        }
-        if (tensElement) {
-          tensElement.className = `${styles.displayStyle} ${styles[`d${tens}`]}`;
-        }
-        if (onesElement) {
-          onesElement.className = `${styles.displayStyle} ${styles[`d${ones}`]}`;
-        }
+        setTimer({ hundreds, tens, ones });
       }, 1000);
     }
 
@@ -192,7 +192,7 @@ const Home = () => {
       setStartTime(Date.now());
 
       console.log('bombMap3', bombMap);
-      console.log('isFirst2', isFirst, board);
+      console.log('isFirst', isFirst, board);
       let p: number = 0;
       while (p < bombCount) {
         console.log('ループ', p);
@@ -232,7 +232,7 @@ const Home = () => {
       setBombMap(newMap);
       console.log('bombMap4', newMap);
       console.log('bombMap5', bombMap);
-      console.log('board3', board);
+      console.log('board2', board);
     }
     console.log('newInput', newInput);
     console.log('userInput', userInput);
@@ -282,6 +282,7 @@ const Home = () => {
   //ボードを作成する関数
   const MakeBoard = (lenY, lenX) => {
     setStartTime(null);
+    setTimer({ hundreds: 0, tens: 0, ones: 0 });
 
     console.log('level', level);
     console.log('lenY, lenX', lenY, lenX);
@@ -305,41 +306,99 @@ const Home = () => {
       lenY = 16;
       lenX = 30;
     } else if (level === 'custom') {
-      lenY = 30;
-      lenX = 30;
+      lenY = customValues[0];
+      lenX = customValues[1];
     }
     MakeBoard(lenY, lenX);
   };
 
   //カスタムの入力値を取得する関数
+  const handleInputChange = (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValues = [...inputValues];
+    const value = parseInt(event.target.value, 10);
+    newValues[index] = isNaN(value) ? 0 : value;
+    console.log('入力された値:', newValues);
+
+    setInputValues(newValues);
+  };
+
+  const handleSubmit = () => {
+    setCustomVlues(inputValues);
+    MakeBoard(inputValues[0], inputValues[1]);
+    console.log('取得した値:', inputValues);
+  };
 
   return (
     <div className={styles.container}>
       <div className={styles.menueStyle}>
-        <div className={styles.levelStyle} onClick={() => Levelset('lev1')}>
+        <div
+          className={styles.levelStyle}
+          onClick={() => Levelset('lev1')}
+          style={{ fontWeight: `${level === 'lev1' ? 700 : 400}` }}
+        >
           初級
         </div>
-        <div className={styles.levelStyle} onClick={() => Levelset('lev2')}>
+        <div
+          className={styles.levelStyle}
+          onClick={() => Levelset('lev2')}
+          style={{ fontWeight: `${level === 'lev2' ? 700 : 400}` }}
+        >
           中級
         </div>
-        <div className={styles.levelStyle} onClick={() => Levelset('lev3')}>
+        <div
+          className={styles.levelStyle}
+          onClick={() => Levelset('lev3')}
+          style={{ fontWeight: `${level === 'lev3' ? 700 : 400}` }}
+        >
           上級
         </div>
-        <div className={styles.levelStyle} onClick={() => Levelset('custom')}>
+        <div
+          className={styles.levelStyle}
+          onClick={() => Levelset('custom')}
+          style={{ fontWeight: `${level === 'custom' ? 700 : 400}` }}
+        >
           カスタム
         </div>
       </div>
-      <div className={styles.customStyle}>
+
+      {level === 'custom' && (
         <div className={styles.customStyle}>
-          幅：
-          <input type="text" value={30} size={3} id="width" />
-          高さ：
-          <input type="text" value={30} size={3} id="height" />
-          爆弾数：
-          <input type="text" value={30} size={3} id="bombCount" />
-          <button type="button" />
+          <div>
+            幅：
+            <input
+              type="text"
+              value={inputValues[1]}
+              size={3}
+              id="width"
+              onChange={handleInputChange(1)}
+            />
+          </div>
+          <div>
+            高さ：
+            <input
+              type="text"
+              value={inputValues[0]}
+              size={3}
+              id="height"
+              onChange={handleInputChange(0)}
+            />
+          </div>
+          <div>
+            爆弾数：
+            <input
+              type="text"
+              value={inputValues[2]}
+              size={3}
+              id="bombCount"
+              onChange={handleInputChange(2)}
+            />
+          </div>
+          <button type="button" onClick={handleSubmit}>
+            更新
+          </button>
         </div>
-      </div>
+      )}
+
       <div
         className={styles.backboardStyle}
         style={{
@@ -368,9 +427,12 @@ const Home = () => {
             style={{ backgroundPosition: `${-40 * (isSuccess ? 12 : isFailure ? 13 : 11)}px 0px` }}
           />
           <div className={styles.timeStyle}>
-            <div id="hundreds" className={`${styles.displayStyle} ${styles.d0}`} />
-            <div id="tens" className={`${styles.displayStyle} ${styles.d0}`} />
-            <div id="ones" className={`${styles.displayStyle} ${styles.d0}`} />
+            <div
+              id="hundreds"
+              className={`${styles.displayStyle} ${styles[`d${timer.hundreds}`]}`}
+            />
+            <div id="tens" className={`${styles.displayStyle} ${styles[`d${timer.tens}`]}`} />
+            <div id="ones" className={`${styles.displayStyle} ${styles[`d${timer.ones}`]}`} />
           </div>
         </div>
         <div
