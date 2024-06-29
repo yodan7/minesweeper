@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import styles from './index.module.css';
 
 const Home = () => {
-  //タイマー
+  //タイマーの設定
   const [startTime, setStartTime] = useState<number | null>(null);
-  //タイマーの数値
+  //タイマーの値
   const [timer, setTimer] = useState({ hundreds: 0, tens: 0, ones: 0 });
 
   //難易度
@@ -23,15 +23,19 @@ const Home = () => {
     } else if (level === 'lev3') {
       return [16, 30, 99];
     } else if (level === 'custom') {
-      console.log('customValues', customValues);
+      // console.log('customValues', customValues);
       return customValues;
     }
     return [9, 9, 10]; // デフォルト値を追加
   };
-  //サイズ
+
+  //サイズを取得
   const lenY = setLenBomb(level)[0];
   const lenX = setLenBomb(level)[1];
-  console.log('最終的なサイズ：', lenY, lenX);
+  // console.log('最終的なサイズ：', lenY, lenX);
+
+  //ボムの数を取得
+  const bombCount = setLenBomb(level)[2];
 
   // 0 -> 未クリック
   // 1 -> クリック
@@ -42,14 +46,12 @@ const Home = () => {
     [...Array(lenY)].map(() => [...Array(lenX)].map(() => 0)),
   );
 
-  const bombCount = setLenBomb(level)[2];
-
   // 0 -> ボムなし
   // 1 -> ボムあり
   // 2-9 -> 数字セル
   //ボムの詳細マップ
   const [bombMap, setBombMap] = useState([...Array(lenY)].map(() => [...Array(lenX)].map(() => 0)));
-  console.log('bombMap1', bombMap);
+  // console.log('bombMap1', bombMap);
 
   // -1 -> 石
   // 0 -> 画像無しセル
@@ -59,22 +61,20 @@ const Home = () => {
   // 11 -> ボムセル
   //表示するマップ
   const board = [...Array(lenY)].map(() => [...Array(lenX)].map(() => -1));
-  console.log('board1', board);
+  // console.log('board1', board);
 
   //最初のクリックかどうか
   const isFirst = !bombMap.flat().includes(1);
-  // const isPlaying = userInput.some((row) => row.some((input) => input !== 0));
+
   //負けの判定
   const isFailure = userInput.some((row, y) =>
     row.some((input, x) => input === 1 && bombMap[y][x] === 1),
   );
-  //クリアの判定
-  const isSuccess =
-    !isFailure &&
-    userInput.flat().filter((cell) => cell !== 1).length <=
-      bombMap.flat().filter((cell) => cell === 1).length;
 
-  //八方向確認用
+  //クリアの判定
+  const isSuccess = userInput.flat().filter((cell) => cell !== 1).length <= bombCount;
+
+  //8方向
   const directions = [
     [-1, 0],
     [-1, 1],
@@ -88,28 +88,19 @@ const Home = () => {
 
   //タイマー
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    const interval: NodeJS.Timeout | null =
+      startTime !== null
+        ? setInterval(() => {
+            const elapsed = Math.floor((Date.now() - (startTime || 0)) / 1000);
+            const hundreds = Math.floor(elapsed / 100);
+            const tens = Math.floor((elapsed % 100) / 10);
+            const ones = elapsed % 10;
 
-    if (startTime !== null) {
-      interval = setInterval(() => {
-        const elapsed = startTime === null ? 0 : Math.floor((Date.now() - startTime) / 1000);
-        const hundreds = Math.floor(elapsed / 100);
-        const tens = Math.floor((elapsed % 100) / 10);
-        const ones = elapsed % 10;
-
-        setTimer({ hundreds, tens, ones });
-      }, 1000);
-    }
+            setTimer({ hundreds, tens, ones });
+          }, 1000)
+        : null;
 
     const checkGameState = () => {
-      const isFailure = userInput.some((row, y) =>
-        row.some((input, x) => input === 1 && bombMap[y][x] === 1),
-      );
-      const isSuccess =
-        !isFailure &&
-        userInput.flat().filter((cell) => cell !== 1).length <=
-          bombMap.flat().filter((cell) => cell === 1).length;
-
       if (isFailure || isSuccess) {
         setStartTime(null);
       }
@@ -122,11 +113,11 @@ const Home = () => {
         clearInterval(interval);
       }
     };
-  }, [startTime, userInput, bombMap]);
+  }, [startTime, isFailure, isSuccess]);
 
   //メニューを非表示にする
   const noContext = (event: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
-    console.log('非表示');
+    // console.log('非表示');
 
     event.preventDefault();
   };
@@ -147,7 +138,7 @@ const Home = () => {
     } else if (newInput[y][x] === 0) {
       newInput[y][x] = 2;
     }
-    console.log('右クリック', userInput, board);
+    // console.log('右クリック', userInput, board);
 
     setUserInput(newInput);
   };
@@ -159,8 +150,8 @@ const Home = () => {
     newMap: number[][],
     newInput: (0 | 1 | 2 | 3)[][],
   ): void => {
-    console.log('checkZerolist');
-    console.log('bombMap2', newMap);
+    // console.log('checkZerolist');
+    // console.log('bombMap2', newMap);
 
     if (x < 0 || x >= lenX || y < 0 || y >= lenY) {
       return;
@@ -168,7 +159,7 @@ const Home = () => {
 
     if (newInput[y][x] !== 1) {
       newInput[y][x] = 1;
-      console.log('OpenCell');
+      // console.log('OpenCell');
 
       if (newMap[y][x] >= 1) {
         return;
@@ -183,49 +174,44 @@ const Home = () => {
     }
   };
 
-  //クリックしたときにボムや数字を配置する関数
+  //左クリックしたときにする関数
   const clickstone = (x: number, y: number) => {
-    console.log(x, y);
+    // console.log(x, y);
     const newInput = structuredClone(userInput);
     const newMap = structuredClone(bombMap);
 
     if (isFailure) {
       return;
     }
-    //初回のみbombMapに爆弾、boardに数字をセット
 
+    //初回のみbombMapにボムや数字を配置
     if (isFirst) {
       setStartTime(Date.now());
 
-      console.log('bombMap3', bombMap);
-      console.log('isFirst', isFirst, board);
-      let p: number = 0;
-      while (p < bombCount) {
-        console.log('ループ', p);
+      while (newMap.flat().filter((bomb) => bomb === 1).length < bombCount) {
+        console.log('ループ', newMap.flat().filter((bomb) => bomb === 1).length);
 
         const bombY: number = Math.floor(Math.random() * lenY);
         const bombX: number = Math.floor(Math.random() * lenX);
+        //ボム配置ループやり直し
         if (newMap[bombY][bombX] === 1 || (bombY === y && bombX === x)) {
-          //ボム配置ループやり直し
-          console.log('被り', bombY, bombX);
-          console.log('continue');
+          // console.log('被り', bombY, bombX);
           continue;
         }
         newMap[bombY][bombX] = 1;
-        // ボムを配置
-        console.log('bomb:', bombY, bombX);
-        p++;
 
+        // console.log('bombの位置:', bombY, bombX);
+        //数字を配置
         directions.forEach(([dy, dx]) => {
           const aroundY = bombY + dy;
           const aroundX = bombX + dx;
-          console.log('ボム周辺', aroundY, aroundX);
+          // console.log('ボム周辺', aroundY, aroundX);
           if (
             newMap[aroundY] !== undefined &&
             newMap[aroundY][aroundX] !== undefined &&
             newMap[aroundY][aroundX] !== 1
           ) {
-            console.log('aroundNum');
+            // console.log('aroundNum');
             if (newMap[aroundY][aroundX] >= 2) {
               newMap[aroundY][aroundX]++;
             } else {
@@ -236,16 +222,10 @@ const Home = () => {
       }
 
       setBombMap(newMap);
-      console.log('bombMap4', newMap);
-      console.log('bombMap5', bombMap);
-      console.log('board2', board);
     }
-    console.log('newInput', newInput);
-    console.log('userInput', userInput);
-
+    //再帰的にセルを開ける
     checkZeroCells(x, y, newMap, newInput);
 
-    // setBoard(board);
     setUserInput(newInput);
   };
 
@@ -278,20 +258,16 @@ const Home = () => {
     }),
   );
 
+  //ボムの残りの数
   const RemainBomb = bombCount - board.flat().filter((flag) => flag === 10).length;
 
-  //ページをリロードする関数
-  const Reload = () => {
-    window.location.reload();
-  };
-
-  //ボードを作成する関数
+  //レベル変更などの更新時にボードを作成し直す関数
   const MakeBoard = (lenY: number, lenX: number): void => {
     setStartTime(null);
     setTimer({ hundreds: 0, tens: 0, ones: 0 });
 
-    console.log('level', level);
-    console.log('lenY, lenX', lenY, lenX);
+    // console.log('level', level);
+    // console.log('lenY, lenX', lenY, lenX);
     setUserInput([...Array(lenY)].map(() => [...Array(lenX)].map(() => 0)));
     setBombMap([...Array(lenY)].map(() => [...Array(lenX)].map(() => 0)));
   };
@@ -299,69 +275,61 @@ const Home = () => {
   //レベルをセットする関数
   const Levelset = (level: 'lev1' | 'lev2' | 'lev3' | 'custom'): void => {
     setLevel(level);
-    let lenY = 9;
-    let lenX = 9;
+    const lenY = setLenBomb(level)[0];
+    const lenX = setLenBomb(level)[1];
+    // console.log('level', lenX, lenY);
 
-    if (level === 'lev1') {
-      lenY = 9;
-      lenX = 9;
-    } else if (level === 'lev2') {
-      lenY = 16;
-      lenX = 16;
-    } else if (level === 'lev3') {
-      lenY = 16;
-      lenX = 30;
-    } else if (level === 'custom') {
-      lenY = customValues[0];
-      lenX = customValues[1];
-    }
     MakeBoard(lenY, lenX);
   };
 
-  //カスタムの入力値を取得する関数
+  //カスタムで入力させる関数
   const handleInputChange =
     (index: number) =>
     (event: React.ChangeEvent<HTMLInputElement>): void => {
       const newValues = [...inputValues];
       const value = parseInt(event.target.value, 10);
       newValues[index] = isNaN(value) ? 0 : value;
-      console.log('入力された値:', newValues);
+      // console.log('入力された値:', newValues);
 
       setInputValues(newValues);
     };
 
+  //入力した値を取得する関数
   const handleSubmit = (): void => {
     setCustomVlues(inputValues);
     MakeBoard(inputValues[0], inputValues[1]);
-    console.log('取得した値:', inputValues);
+    // console.log('取得した値:', inputValues);
+  };
+
+  //ページをリロードする関数
+  const Reload = () => {
+    window.location.reload();
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.menueStyle}>
         <div
-          className={styles.levelStyle}
           onClick={() => Levelset('lev1')}
           style={{ fontWeight: `${level === 'lev1' ? 700 : 400}` }}
         >
           初級
         </div>
         <div
-          className={styles.levelStyle}
-          onClick={() => Levelset('lev2')}
+          onClick={() => {
+            Levelset('lev2');
+          }}
           style={{ fontWeight: `${level === 'lev2' ? 700 : 400}` }}
         >
           中級
         </div>
         <div
-          className={styles.levelStyle}
           onClick={() => Levelset('lev3')}
           style={{ fontWeight: `${level === 'lev3' ? 700 : 400}` }}
         >
           上級
         </div>
         <div
-          className={styles.levelStyle}
           onClick={() => Levelset('custom')}
           style={{ fontWeight: `${level === 'custom' ? 700 : 400}` }}
         >
@@ -454,7 +422,7 @@ const Home = () => {
             row.map((cell, x) => (
               <div
                 onContextMenu={(event) => {
-                  console.log('右クリック');
+                  // console.log('右クリック');
                   noContext(event);
                   clickR(x, y);
                 }}
@@ -480,17 +448,14 @@ const Home = () => {
                     }}
                   />
                 ) : (
-                  (console.log('反映', board, isSuccess),
-                  (
-                    <div
-                      className={styles.sampleStyle}
-                      style={{
-                        backgroundPosition: `${-25 * (cell - 1)}px 0px`,
-                        backgroundColor:
-                          userInput[y][x] === 1 && bombMap[y][x] === 1 ? 'red' : 'inherit',
-                      }}
-                    />
-                  ))
+                  <div
+                    className={styles.sampleStyle}
+                    style={{
+                      backgroundPosition: `${-25 * (cell - 1)}px 0px`,
+                      backgroundColor:
+                        userInput[y][x] === 1 && bombMap[y][x] === 1 ? 'red' : 'inherit',
+                    }}
+                  />
                 )}
               </div>
             )),

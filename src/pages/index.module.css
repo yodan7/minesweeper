@@ -119,6 +119,7 @@
   border-color: white #808080 #808080 white;
 }
 
+/* デジタル表示のCSS */
 .displayStyle {
   position: relative;
   box-sizing: border-box;
