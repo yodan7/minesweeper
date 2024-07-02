@@ -1,5 +1,26 @@
+// 型定義の追加
+type StyleKeys =
+  | 'container'
+  | 'menueStyle'
+  | 'customStyle'
+  | 'sampleStyle'
+  | 'backboardStyle'
+  | 'infoStyle'
+  | 'countStyle'
+  | 'displayStyle'
+  | 'resetStyle'
+  | 'timeStyle'
+  | 'boardStyle'
+  | 'cellStyle'
+  | 'fillStyle'
+  | 'rightfillStyle';
+interface CSSModule extends Record<StyleKeys, string> {
+  [key: string]: string;
+}
+// インポート部分の変更
 import React, { useEffect, useState } from 'react';
-import styles from './index.module.css';
+import stylesModule from './index.module.css';
+const styles = stylesModule as CSSModule;
 
 const Home = () => {
   //タイマーの設定
@@ -187,25 +208,30 @@ const Home = () => {
     //初回のみbombMapにボムや数字を配置
     if (isFirst) {
       setStartTime(Date.now());
-
       while (newMap.flat().filter((bomb) => bomb === 1).length < bombCount) {
         console.log('ループ', newMap.flat().filter((bomb) => bomb === 1).length);
+        console.log('newMap', newMap);
+        // p++;
+        // if (p > 10) {
+        //   break;
+        // }
 
         const bombY: number = Math.floor(Math.random() * lenY);
         const bombX: number = Math.floor(Math.random() * lenX);
         //ボム配置ループやり直し
-        if (newMap[bombY][bombX] === 1 || (bombY === y && bombX === x)) {
-          // console.log('被り', bombY, bombX);
+        if (newMap[bombY][bombX] === 1 || (lenX * lenY > bombCount && bombY === y && bombX === x)) {
+          console.log('被り', bombY, bombX);
+          console.log('newMap[bombY][bombX]', newMap[bombY][bombX]);
           continue;
         }
         newMap[bombY][bombX] = 1;
 
-        // console.log('bombの位置:', bombY, bombX);
+        console.log('bombの位置:', bombY, bombX);
         //数字を配置
         directions.forEach(([dy, dx]) => {
           const aroundY = bombY + dy;
           const aroundX = bombX + dx;
-          // console.log('ボム周辺', aroundY, aroundX);
+          console.log('ボム周辺', aroundY, aroundX);
           if (
             newMap[aroundY] !== undefined &&
             newMap[aroundY][aroundX] !== undefined &&
@@ -261,7 +287,7 @@ const Home = () => {
   //ボムの残りの数
   const RemainBomb = bombCount - board.flat().filter((flag) => flag === 10).length;
 
-  //レベル変更などの更新時にボードを作成し直す関数
+  //レベル変更・カスタム更新時にボードを作成し直す関数
   const MakeBoard = (lenY: number, lenX: number): void => {
     setStartTime(null);
     setTimer({ hundreds: 0, tens: 0, ones: 0 });
@@ -289,6 +315,7 @@ const Home = () => {
       const newValues = [...inputValues];
       const value = parseInt(event.target.value, 10);
       newValues[index] = isNaN(value) ? 0 : value;
+
       // console.log('入力された値:', newValues);
 
       setInputValues(newValues);
@@ -296,6 +323,9 @@ const Home = () => {
 
   //入力した値を取得する関数
   const handleSubmit = (): void => {
+    if (inputValues[0] * inputValues[1] < inputValues[2]) {
+      inputValues[2] = inputValues[0] * inputValues[1];
+    }
     setCustomVlues(inputValues);
     MakeBoard(inputValues[0], inputValues[1]);
     // console.log('取得した値:', inputValues);
@@ -382,35 +412,43 @@ const Home = () => {
           height: `${lenY * 31 + 130}px`,
         }}
       >
-        <div
-          className={styles.infoStyle}
-          onClick={() => Reload()}
-          style={{
-            width: `${lenX * 30 + 10}px`,
-          }}
-        >
-          <div className={styles.countStyle}>
-            <div
-              className={`${styles.displayStyle} ${styles[`d${Math.floor(RemainBomb / 100)}`]}`}
-            />
-            <div
-              className={`${styles.displayStyle} ${styles[`d${Math.floor((RemainBomb % 100) / 10)}`]}`}
-            />
-            <div className={`${styles.displayStyle} ${styles[`d${RemainBomb % 10}`]}`} />
-          </div>
+        {lenX > 3 && (
           <div
-            className={styles.resetStyle}
-            style={{ backgroundPosition: `${-40 * (isSuccess ? 12 : isFailure ? 13 : 11)}px 0px` }}
-          />
-          <div className={styles.timeStyle}>
-            <div
-              id="hundreds"
-              className={`${styles.displayStyle} ${styles[`d${timer.hundreds}`]}`}
-            />
-            <div id="tens" className={`${styles.displayStyle} ${styles[`d${timer.tens}`]}`} />
-            <div id="ones" className={`${styles.displayStyle} ${styles[`d${timer.ones}`]}`} />
+            className={styles.infoStyle}
+            onClick={() => Reload()}
+            style={{
+              width: `${lenX * 30 + 10}px`,
+            }}
+          >
+            <div className={styles.countStyle}>
+              <div
+                className={`${styles.displayStyle} ${styles[`d${Math.floor(RemainBomb / 100)}`]}`}
+              />
+              <div
+                className={`${styles.displayStyle} ${styles[`d${Math.floor((RemainBomb % 100) / 10)}`]}`}
+              />
+              <div className={`${styles.displayStyle} ${styles[`d${RemainBomb % 10}`]}`} />
+            </div>
+            {lenX > 7 && (
+              <div
+                className={styles.resetStyle}
+                style={{
+                  backgroundPosition: `${-40 * (isSuccess ? 12 : isFailure ? 13 : 11)}px 0px`,
+                }}
+              />
+            )}
+            {lenX > 5 && (
+              <div className={styles.timeStyle}>
+                <div
+                  id="hundreds"
+                  className={`${styles.displayStyle} ${styles[`d${timer.hundreds}`]}`}
+                />
+                <div id="tens" className={`${styles.displayStyle} ${styles[`d${timer.tens}`]}`} />
+                <div id="ones" className={`${styles.displayStyle} ${styles[`d${timer.ones}`]}`} />
+              </div>
+            )}
           </div>
-        </div>
+        )}
         <div
           className={styles.boardStyle}
           style={{
