@@ -87,13 +87,17 @@ const Home = () => {
   //最初のクリックかどうか
   const isFirst = !bombMap.flat().includes(1);
 
+  //プレイ中かの判定
+  const isPlaying = userInput.some((row) => row.some((input) => input !== 0));
+
   //負けの判定
-  const isFailure = userInput.some((row, y) =>
-    row.some((input, x) => input === 1 && bombMap[y][x] === 1),
-  );
+  const isFailure =
+    isPlaying &&
+    userInput.some((row, y) => row.some((input, x) => input === 1 && bombMap[y][x] === 1));
 
   //クリアの判定
-  const isSuccess = userInput.flat().filter((cell) => cell !== 1).length <= bombCount;
+  const isSuccess =
+    isPlaying && !isFailure && userInput.flat().filter((cell) => cell !== 1).length <= bombCount;
 
   //8方向
   const directions = [
@@ -209,29 +213,25 @@ const Home = () => {
     if (isFirst) {
       setStartTime(Date.now());
       while (newMap.flat().filter((bomb) => bomb === 1).length < bombCount) {
-        console.log('ループ', newMap.flat().filter((bomb) => bomb === 1).length);
-        console.log('newMap', newMap);
-        // p++;
-        // if (p > 10) {
-        //   break;
-        // }
+        // console.log('ループ', newMap.flat().filter((bomb) => bomb === 1).length);
+        // console.log('newMap', newMap);
 
         const bombY: number = Math.floor(Math.random() * lenY);
         const bombX: number = Math.floor(Math.random() * lenX);
         //ボム配置ループやり直し
         if (newMap[bombY][bombX] === 1 || (lenX * lenY > bombCount && bombY === y && bombX === x)) {
-          console.log('被り', bombY, bombX);
-          console.log('newMap[bombY][bombX]', newMap[bombY][bombX]);
+          // console.log('被り', bombY, bombX);
+          // console.log('newMap[bombY][bombX]', newMap[bombY][bombX]);
           continue;
         }
         newMap[bombY][bombX] = 1;
 
-        console.log('bombの位置:', bombY, bombX);
+        // console.log('bombの位置:', bombY, bombX);
         //数字を配置
         directions.forEach(([dy, dx]) => {
           const aroundY = bombY + dy;
           const aroundX = bombX + dx;
-          console.log('ボム周辺', aroundY, aroundX);
+          // console.log('ボム周辺', aroundY, aroundX);
           if (
             newMap[aroundY] !== undefined &&
             newMap[aroundY][aroundX] !== undefined &&
