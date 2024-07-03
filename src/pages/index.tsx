@@ -303,7 +303,6 @@ const Home = () => {
     setLevel(level);
     const lenY = setLenBomb(level)[0];
     const lenX = setLenBomb(level)[1];
-    // console.log('level', lenX, lenY);
 
     MakeBoard(lenY, lenX);
   };
