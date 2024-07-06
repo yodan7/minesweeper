@@ -117,9 +117,15 @@ const Home = () => {
       startTime !== null
         ? setInterval(() => {
             const elapsed = Math.floor((Date.now() - (startTime || 0)) / 1000);
+            elapsed + 990;
             const hundreds = Math.floor(elapsed / 100);
             const tens = Math.floor((elapsed % 100) / 10);
             const ones = elapsed % 10;
+            // console.log('elapsed', elapsed);
+
+            if (elapsed === 999) {
+              setStartTime(null);
+            }
 
             setTimer({ hundreds, tens, ones });
           }, 1000)
@@ -205,7 +211,7 @@ const Home = () => {
     const newInput = structuredClone(userInput);
     const newMap = structuredClone(bombMap);
 
-    if (isFailure) {
+    if (userInput[x][y] === 3 || isFailure || isSuccess) {
       return;
     }
 
@@ -332,7 +338,7 @@ const Home = () => {
 
   //ページをリロードする関数
   const Reload = () => {
-    window.location.reload();
+    Levelset(level);
   };
 
   return (
