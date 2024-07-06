@@ -211,7 +211,7 @@ const Home = () => {
     const newInput = structuredClone(userInput);
     const newMap = structuredClone(bombMap);
 
-    if (userInput[x][y] === 3 || isFailure || isSuccess) {
+    if (userInput[y][x] === 3 || isFailure || isSuccess) {
       return;
     }
 
