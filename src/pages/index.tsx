@@ -23,6 +23,9 @@ import stylesModule from './index.module.css';
 const styles = stylesModule as CSSModule;
 
 const Home = () => {
+  //残機
+  const [lives, setLives] = useState(1);
+
   //タイマーの設定
   const [startTime, setStartTime] = useState<number | null>(null);
   //タイマーの値
@@ -505,6 +508,35 @@ const Home = () => {
           )}
         </div>
       </div>
+
+      {
+        /* 残機追加カスタム */
+        lenX > 3 && (
+          <div
+            className={styles.lifeStyle}
+            onClick={() => Reload()}
+            style={{
+              width: `${7 * 30 + 10}px`,
+            }}
+          >
+            {lenX > 5 && (
+              <div
+                className={styles.resetStyle}
+                style={{
+                  backgroundPosition: `${-40 * (isSuccess ? 12 : isFailure ? 13 : 11)}px 0px`,
+                }}
+              />
+            )}
+            <div style={{ fontSize: 50, fontWeight: 700 }}>×</div>
+            <div className={styles.livesStyle}>
+              <div
+                className={`${styles.displayStyle} ${styles[`d${Math.floor((lives % 100) / 10)}`]}`}
+              />
+              <div className={`${styles.displayStyle} ${styles[`d${lives % 10}`]}`} />
+            </div>
+          </div>
+        )
+      }
     </div>
   );
 };

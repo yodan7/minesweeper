@@ -263,3 +263,23 @@
     14px 0 #ff0003,
     14px 14px #ff0003;
 }
+
+/* 残機追加カスタム */
+.lifeStyle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  height: 78px;
+  background-color: #c6c6c6;
+  border: solid, 5px;
+  border-color: white #808080 #808080 white;
+}
+
+.livesStyle {
+  width: 60px;
+  height: 50px;
+  background-color: #c6c6c6;
+  border: solid, 2px;
+  border-color: #808080 white white #808080;
+}
