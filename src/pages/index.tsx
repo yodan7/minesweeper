@@ -96,20 +96,25 @@ const Home = () => {
   //ライフ数(基本は1)
   const numburst =
     lives -
-    userInput.forEach((row, y) => row.forEach((input, x) => input === 1 && bombMap[y][x] === 1))
-      .length;
+    userInput
+      .map((row, y) => row.filter((input, x) => input === 1 && bombMap[y][x] === 1))
+      .flat()
+      .filter((num) => num === 1).length;
 
   //負けの判定
   const isFailure = isPlaying && !numburst;
-  console.log('lives', lives);
-  console.log(
-    'num',
-    userInput.filter((row, y) => row.filter((input, x) => input === 1 && bombMap[y][x] === 1)),
-  );
-  console.log('bombMap', bombMap);
-  console.log('userInput', userInput);
-  console.log('numburst', numburst);
-  console.log('isFailure', isFailure);
+  // console.log('lives', lives);
+  // console.log(
+  //   'num',
+  //   userInput
+  //     .map((row, y) => row.filter((input, x) => input === 1 && bombMap[y][x] === 1))
+  //     .flat()
+  //     .filter((num) => num === 1).length,
+  // );
+  // console.log('bombMap', bombMap);
+  // console.log('userInput', userInput);
+  // console.log('numburst', numburst);
+  // console.log('isFailure', isFailure);
   //クリアの判定
   const isSuccess =
     isPlaying && !isFailure && userInput.flat().filter((cell) => cell !== 1).length <= bombCount;
@@ -138,7 +143,7 @@ const Home = () => {
             const ones = elapsed % 10;
             // console.log('elapsed', elapsed);
 
-            if (elapsed === 999) {
+            if (elapsed >= 999) {
               setStartTime(null);
             }
 
@@ -322,10 +327,9 @@ const Home = () => {
   //レベルをセットする関数
   const Levelset = (level: 'lev1' | 'lev2' | 'lev3' | 'custom'): void => {
     setLevel(level);
-    const lenY = setLenBomb(level)[0];
-    const lenX = setLenBomb(level)[1];
+    const [newLenY, newLenX] = setLenBomb(level);
 
-    MakeBoard(lenY, lenX);
+    MakeBoard(newLenY, newLenX);
   };
 
   //カスタムで入力させる関数
@@ -349,6 +353,21 @@ const Home = () => {
     setCustomVlues(inputValues);
     MakeBoard(inputValues[0], inputValues[1]);
     // console.log('取得した値:', inputValues);
+  };
+
+  //残機を設定する関数
+  const handleInputLives = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const newLives = parseInt(event.target.value, 10);
+    if (isNaN(newLives)) {
+      setLives(1);
+    } else if (newLives > bombCount) {
+      setLives(bombCount);
+    } else {
+      setLives(newLives);
+    }
+  };
+  const handleFocus = (event: React.FocusEvent<HTMLInputElement>): void => {
+    event.target.select();
   };
 
   //ページをリロードする関数
@@ -520,8 +539,20 @@ const Home = () => {
           )}
         </div>
       </div>
-
-      {
+      {!isPlaying && (
+        <div>
+          残機：
+          <input
+            type="text"
+            value={lives}
+            size={3}
+            id="width"
+            onChange={handleInputLives}
+            onFocus={handleFocus}
+          />
+        </div>
+      )}
+      {isPlaying &&
         /* 残機追加カスタム */
         lenX > 3 && (
           <div
@@ -542,13 +573,12 @@ const Home = () => {
             <div style={{ fontSize: 50, fontWeight: 700 }}>×</div>
             <div className={styles.livesStyle}>
               <div
-                className={`${styles.displayStyle} ${styles[`d${Math.floor((lives % 100) / 10)}`]}`}
+                className={`${styles.displayStyle} ${styles[`d${Math.floor((numburst % 100) / 10)}`]}`}
               />
               <div className={`${styles.displayStyle} ${styles[`d${lives % 10}`]}`} />
             </div>
           </div>
-        )
-      }
+        )}
     </div>
   );
 };
