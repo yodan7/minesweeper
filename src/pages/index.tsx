@@ -93,11 +93,23 @@ const Home = () => {
   //プレイ中かの判定
   const isPlaying = userInput.some((row) => row.some((input) => input !== 0));
 
-  //負けの判定
-  const isFailure =
-    isPlaying &&
-    userInput.some((row, y) => row.some((input, x) => input === 1 && bombMap[y][x] === 1));
+  //ライフ数(基本は1)
+  const numburst =
+    lives -
+    userInput.forEach((row, y) => row.forEach((input, x) => input === 1 && bombMap[y][x] === 1))
+      .length;
 
+  //負けの判定
+  const isFailure = isPlaying && !numburst;
+  console.log('lives', lives);
+  console.log(
+    'num',
+    userInput.filter((row, y) => row.filter((input, x) => input === 1 && bombMap[y][x] === 1)),
+  );
+  console.log('bombMap', bombMap);
+  console.log('userInput', userInput);
+  console.log('numburst', numburst);
+  console.log('isFailure', isFailure);
   //クリアの判定
   const isSuccess =
     isPlaying && !isFailure && userInput.flat().filter((cell) => cell !== 1).length <= bombCount;
