@@ -93,31 +93,29 @@ const Home = () => {
   //プレイ中かの判定
   const isPlaying = userInput.some((row) => row.some((input) => input !== 0));
 
+  //爆発したボム数
+  const numburst = userInput
+    .map((row, y) => row.filter((input, x) => input === 1 && bombMap[y][x] === 1))
+    .flat()
+    .filter((num) => num === 1).length;
+
   //ライフ数(基本は1)
-  const numburst =
-    lives -
-    userInput
-      .map((row, y) => row.filter((input, x) => input === 1 && bombMap[y][x] === 1))
-      .flat()
-      .filter((num) => num === 1).length;
+  const RemainLives = lives - numburst;
 
   //負けの判定
-  const isFailure = isPlaying && !numburst;
-  // console.log('lives', lives);
-  // console.log(
-  //   'num',
-  //   userInput
-  //     .map((row, y) => row.filter((input, x) => input === 1 && bombMap[y][x] === 1))
-  //     .flat()
-  //     .filter((num) => num === 1).length,
-  // );
-  // console.log('bombMap', bombMap);
-  // console.log('userInput', userInput);
-  // console.log('numburst', numburst);
-  // console.log('isFailure', isFailure);
+  const isFailure = isPlaying && !RemainLives;
+  // // console.log('lives', lives);
+  // console.log('num', numburst);
+
+  //ライフが減ったかどうかの判定
+  const isDamage = numburst;
+
   //クリアの判定
   const isSuccess =
-    isPlaying && !isFailure && userInput.flat().filter((cell) => cell !== 1).length <= bombCount;
+    isPlaying &&
+    !isFailure &&
+    lenX * lenY > bombCount &&
+    userInput.flat().filter((cell) => cell !== 1).length <= bombCount - numburst;
 
   //8方向
   const directions = [
@@ -299,7 +297,12 @@ const Home = () => {
       if (userInput[y][x] === 3) {
         board[y][x] = 10;
       }
-      //失敗したらボムを表示
+      //残機カスタムのため
+      //クリックしたらボムを表示
+      if (userInput[y][x] === 1 && bombMap[y][x] === 1) {
+        board[y][x] = 11;
+      }
+      //失敗したら全ボムを表示
       if (isFailure && bombMap[y][x] === 1) {
         board[y][x] = 11;
       }
@@ -566,16 +569,18 @@ const Home = () => {
               <div
                 className={styles.resetStyle}
                 style={{
-                  backgroundPosition: `${-40 * (isSuccess ? 12 : isFailure ? 13 : 11)}px 0px`,
+                  backgroundPosition: `${-40 * (isFailure || isDamage ? 13 : isSuccess ? 12 : 11)}px 0px`,
                 }}
               />
             )}
-            <div style={{ fontSize: 50, fontWeight: 700 }}>×</div>
+            <div style={{ fontSize: 50, fontWeight: 700 }} className={styles.xStyle}>
+              ×
+            </div>
             <div className={styles.livesStyle}>
               <div
-                className={`${styles.displayStyle} ${styles[`d${Math.floor((numburst % 100) / 10)}`]}`}
+                className={`${styles.displayStyle} ${styles[`d${Math.floor((RemainLives % 100) / 10)}`]}`}
               />
-              <div className={`${styles.displayStyle} ${styles[`d${lives % 10}`]}`} />
+              <div className={`${styles.displayStyle} ${styles[`d${RemainLives % 10}`]}`} />
             </div>
           </div>
         )}

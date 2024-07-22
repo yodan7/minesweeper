@@ -283,3 +283,7 @@
   border: solid, 2px;
   border-color: #808080 white white #808080;
 }
+
+.xStyle {
+  padding-bottom: 5%;
+}
