@@ -18,25 +18,37 @@ interface CSSModule extends Record<StyleKeys, string> {
   [key: string]: string;
 }
 // インポート部分の変更
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import stylesModule from './index.module.css';
+
+import LevelButton from '../components/LevelButton';
+
+import useLives from '../hooks/setLives';
+import useStartTime from '../hooks/setStartTime';
+import useTimer from '../hooks/setTimer';
+import useLevel from '../hooks/setLevel';
+import useInputValues from '../hooks/setInputValues';
+import useCustomValues from '../hooks/setCustomValues';
+import useUserInput from '../hooks/setUserInput';
+
+import useBombMap from '../hooks/setBombMap';
 const styles = stylesModule as CSSModule;
 
 const Home = () => {
   //残機
-  const [lives, setLives] = useState(1);
+  const { lives, setLives } = useLives();
 
   //タイマーの設定
-  const [startTime, setStartTime] = useState<number | null>(null);
+  const { startTime, setStartTime } = useStartTime();
   //タイマーの値
-  const [timer, setTimer] = useState({ hundreds: 0, tens: 0, ones: 0 });
+  const { timer, setTimer } = useTimer();
 
   //難易度
-  const [level, setLevel] = useState<'lev1' | 'lev2' | 'lev3' | 'custom'>('lev1');
+  const { level, setLevel } = useLevel();
   //難易度の入力欄の更新
-  const [inputValues, setInputValues] = useState<number[]>([30, 30, 120]);
+  const { inputValues, setInputValues } = useInputValues();
   //入力内容
-  const [customValues, setCustomVlues] = useState<number[]>([30, 30, 120]);
+  const { customValues, setCustomValues } = useCustomValues();
 
   //サイズと爆弾の数を決定
   const setLenBomb = (level: 'lev1' | 'lev2' | 'lev3' | 'custom'): number[] => {
@@ -53,29 +65,20 @@ const Home = () => {
     return [9, 9, 10]; // デフォルト値を追加
   };
 
-  //サイズを取得
-  const lenY = setLenBomb(level)[0];
-  const lenX = setLenBomb(level)[1];
-  // console.log('最終的なサイズ：', lenY, lenX);
-
-  //ボムの数を取得
-  const bombCount = setLenBomb(level)[2];
+  //サイズとボムの数を取得
+  const [lenY, lenX, bombCount] = setLenBomb(level);
 
   // 0 -> 未クリック
   // 1 -> クリック
   // 2 -> ？
   // 3 -> 旗
   //クリックの詳細マップ
-  const [userInput, setUserInput] = useState<(0 | 1 | 2 | 3)[][]>(
-    [...Array(lenY)].map(() => [...Array(lenX)].map(() => 0)),
-  );
-
+  const { userInput, setUserInput } = useUserInput(lenY, lenX);
   // 0 -> ボムなし
   // 1 -> ボムあり
   // 2-9 -> 数字セル
   //ボムの詳細マップ
-  const [bombMap, setBombMap] = useState([...Array(lenY)].map(() => [...Array(lenX)].map(() => 0)));
-  // console.log('bombMap1', bombMap);
+  const { bombMap, setBombMap } = useBombMap(lenY, lenX);
 
   // -1 -> 石
   // 0 -> 画像無しセル
@@ -162,7 +165,7 @@ const Home = () => {
         clearInterval(interval);
       }
     };
-  }, [startTime, isFailure, isSuccess]);
+  }, [startTime, setStartTime, setTimer, isFailure, isSuccess]);
 
   //メニューを非表示にする
   const noContext = (event: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
@@ -353,7 +356,7 @@ const Home = () => {
     if (inputValues[0] * inputValues[1] < inputValues[2]) {
       inputValues[2] = inputValues[0] * inputValues[1];
     }
-    setCustomVlues(inputValues);
+    setCustomValues(inputValues);
     MakeBoard(inputValues[0], inputValues[1]);
     // console.log('取得した値:', inputValues);
   };
@@ -381,32 +384,10 @@ const Home = () => {
   return (
     <div className={styles.container}>
       <div className={styles.menueStyle}>
-        <div
-          onClick={() => Levelset('lev1')}
-          style={{ fontWeight: `${level === 'lev1' ? 700 : 400}` }}
-        >
-          初級
-        </div>
-        <div
-          onClick={() => {
-            Levelset('lev2');
-          }}
-          style={{ fontWeight: `${level === 'lev2' ? 700 : 400}` }}
-        >
-          中級
-        </div>
-        <div
-          onClick={() => Levelset('lev3')}
-          style={{ fontWeight: `${level === 'lev3' ? 700 : 400}` }}
-        >
-          上級
-        </div>
-        <div
-          onClick={() => Levelset('custom')}
-          style={{ fontWeight: `${level === 'custom' ? 700 : 400}` }}
-        >
-          カスタム
-        </div>
+        <LevelButton levelName="lev1" currentLevel={level} onLevelSelect={Levelset} />
+        <LevelButton levelName="lev2" currentLevel={level} onLevelSelect={Levelset} />
+        <LevelButton levelName="lev3" currentLevel={level} onLevelSelect={Levelset} />
+        <LevelButton levelName="custom" currentLevel={level} onLevelSelect={Levelset} />
       </div>
 
       {level === 'custom' && (
