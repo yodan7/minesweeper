@@ -9,7 +9,7 @@ interface LevelButtonProps {
 const LevelButton: React.FC<LevelButtonProps> = ({ levelName, currentLevel, onLevelSelect }) => {
   return (
     <div
-      onClick={() => onLevelSelect(levelName)}
+      onClick={() => onLevelSelect(levelName)} /*レベル変更*/
       style={{ fontWeight: `${currentLevel === levelName ? 700 : 400}` }}
     >
       {levelName === 'lev1' && '初級'}
