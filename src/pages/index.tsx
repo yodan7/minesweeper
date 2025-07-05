@@ -18,8 +18,9 @@ interface CSSModule extends Record<StyleKeys, string> {
   [key: string]: string;
 }
 // インポート部分の変更
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import stylesModule from './index.module.css';
+
 import useLives from '../hooks/setLives';
 import useStartTime from '../hooks/setStartTime';
 import useTimer from '../hooks/setTimer';
@@ -27,6 +28,7 @@ import useLevel from '../hooks/setLevel';
 import useInputValues from '../hooks/setInputValues';
 import useCustomValues from '../hooks/setCustomValues';
 import useUserInput from '../hooks/setUserInput';
+
 import useBombMap from '../hooks/setBombMap';
 import LevelButton from '../components/LevelButton';
 import CustomButton from '../components/CustomButton';
@@ -35,8 +37,6 @@ const styles = stylesModule as CSSModule;
 const Home = () => {
   //残機
   const { lives, setLives } = useLives();
-  // 入力中の残機値
-  const [inputLives, setInputLives] = useState(lives.toString());
 
   //タイマーの設定
   const { startTime, setStartTime } = useStartTime();
@@ -361,44 +361,17 @@ const Home = () => {
     // console.log('取得した値:', inputValues);
   };
 
-  // customValuesやlevelが変わったら、livesの上限を調整
-  useEffect(() => {
-    const [, , currentBombCount] = setLenBomb(level);
-    if (lives > currentBombCount) {
-      setLives(currentBombCount);
-      setInputLives(currentBombCount.toString());
-    }
-  }, [level, customValues]);
-
-  // 残機を設定する関数
+  //残機を設定する関数
   const handleInputLives = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const value = event.target.value;
-    setInputLives(value); // 入力中の値をそのまま表示
-
-    // 空欄や数字以外は何もしない
-    if (value === '') return;
-
-    const newLives = parseInt(value, 10);
-    const [, , currentBombCount] = setLenBomb(level);
-
+    const newLives = parseInt(event.target.value, 10);
     if (isNaN(newLives)) {
       setLives(1);
-    } else if (newLives > currentBombCount) {
-      setLives(currentBombCount);
-      setInputLives(currentBombCount.toString());
-    } else if (newLives < 1) {
-      setLives(1);
-      setInputLives('1');
+    } else if (newLives > bombCount) {
+      setLives(bombCount);
     } else {
       setLives(newLives);
     }
   };
-
-  // livesが外部から変わったらinputLivesも同期
-  useEffect(() => {
-    setInputLives(lives.toString());
-  }, [lives]);
-
   const handleFocus = (event: React.FocusEvent<HTMLInputElement>): void => {
     event.target.select();
   };
@@ -525,7 +498,7 @@ const Home = () => {
           残機：
           <input
             type="text"
-            value={inputLives}
+            value={lives}
             size={3}
             id="width"
             onChange={handleInputLives}
